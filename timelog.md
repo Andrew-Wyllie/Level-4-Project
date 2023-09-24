@@ -18,3 +18,8 @@
 
 * 0.5 hour* watching guidance video and reading supporting material
 * 0.5 hour* Setting up GitHub and cloning repository
+
+### 24 Sep 2023
+
+* 1 hour* setting up environments and installing required packages
+* 1.5 hour* trying to get tensorflow to work
