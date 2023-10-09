@@ -39,3 +39,27 @@ After further research i found that PyTorch might be a better packeage to use ov
 
 * 1 hour* setting up environment again using pytorch
 * 1 hour* building a cats vs dogs CNN using pytorch
+
+### 1 Oct 2023
+
+* 4 hour* working through catsVdogs tutorial using pytorch
+
+##Week 3
+
+### 2 Oct 2023
+
+* 0.5 hour* Meeting with supervisor
+* 1 hour* Researching CNN's 
+
+### 4 Oct 2023
+
+* 0.5 hour reading Music classification research paper
+
+### 5 Oct 2023
+
+*
+
+### 7 Oct 2023
+
+* 1 hour* Building Residual Neural Network for Classical vs Metal
+* 5 hour* troubleshooting and fine tuning neural network (consider adding dropout)
