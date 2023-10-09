@@ -63,3 +63,11 @@ After further research i found that PyTorch might be a better packeage to use ov
 
 * 1 hour* Building Residual Neural Network for Classical vs Metal
 * 5 hour* troubleshooting and fine tuning neural network (consider adding dropout)
+
+### 8 Oct 2023
+
+* 3 hour* fine tuning model because predictions were converging to the same result
+
+### 9 Oct 2023
+
+* 0.5 hour meeting with supervisor
