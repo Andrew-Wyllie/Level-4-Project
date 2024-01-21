@@ -243,11 +243,11 @@ After further research i found that PyTorch might be a better packeage to use ov
 
 ### 15 Nov 2023
 
-*
+* 
 
 ### 16 Nov 2023
 
-*
+* 
 
 ### 17 Nov 2023
 
@@ -381,6 +381,9 @@ After further research i found that PyTorch might be a better packeage to use ov
 ### 16 Jan 2024
 
 * 1 hour* reseraching how to overcome the vanishing gradient problem
+* 1 hour* researting github because i couldnt push anymore
+* 2 hour* testing how many layers i should have in my model 
+			5 iterations for each extra layer
 
 ### 17 Jan 2024
 
@@ -390,7 +393,30 @@ After further research i found that PyTorch might be a better packeage to use ov
 
 *
 
-###19 Jan 2024
+### 19 Jan 2024
+
+* 2 hour* Using certainty of prediction to use a comparison to 
+bring both models together into one confusion matrix
+
+##Week 19
+
+### 22 Jan 2024
+
+* 
+
+### 23 Jan 2024
+
+*
+
+### 24 Jan 2024
+
+*
+
+### 25 Jan 2024
+
+*
+
+### ## ### 2024
 
 *
 
