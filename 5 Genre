@@ -1,0 +1,296 @@
+####5 genre classification
+
+import torch
+
+# fully connected layers in pytorch -> linear layer
+
+import glob
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
+from torchvision import datasets, transforms
+from torchvision.transforms import v2
+from torchvision.models import ResNet
+from torchvision.utils import save_image
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+import os
+import pandas as pd
+import csv
+from datetime import datetime
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+
+start_time = datetime.utcnow()
+print("Starting at: ", start_time)
+
+#I dont have a gpu but i included this line if others have one
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+######################################################
+from google.colab import drive
+drive.mount('/content/gdrive')
+######################################################
+
+classes = ["blues", "classical", "hiphop", "metal", "pop"]
+
+#Hyperparameters
+input_size = 218*336*4
+num_classes = 5 ##genres to be seperated
+learning_rate = 0.01
+batch_size = 10
+epochs = 50
+
+##retriving data
+train_dir = r'/content/gdrive/My Drive/Colab Notebooks/genre/data/images_original/train5'
+test_dir = r'/content/gdrive/My Drive/Colab Notebooks/genre/data/images_original/test5'
+
+train_list = glob.glob(os.path.join(train_dir, '*.png'))
+test_list = glob.glob(os.path.join(test_dir, '*.png'))
+
+# I want to look at seperating the training
+# data into validation data in the
+# future maybe as an inprovement
+
+from PIL import Image
+os.environ['KMP_DUPLICATE_LIB_OK']='True' ##To fix Error15
+#random_idx = np.random.randint(1,len(train_list), size=10)
+
+#what_is_this = train_list[0].split('\\')[-1][:-9]
+
+train_transforms = transforms.Compose([
+    transforms.ToTensor(),
+])
+
+test_transforms = transforms.Compose([
+    transforms.ToTensor(),
+])
+
+class dataset(torch.utils.data.Dataset):
+
+    def __init__(self,file_list,transform=None):
+        self.file_list = file_list
+        self.transform = transform
+
+    def __len__(self):
+        self.filelength = len(self.file_list)
+        return self.filelength
+
+    def __getitem__ (self,idx):
+        img_path = self.file_list[idx]
+        img = Image.open(img_path)
+        img_transformed = self.transform(img)
+        img_transformed = transforms.functional.crop(img_transformed, top=35, left=54, height=218, width=336)
+
+
+        label = img_path.split('/')[-1][:-9]
+        if label == 'blues':
+            label = 0
+        elif label == 'classical':
+            label = 1
+        elif label == 'hiphop':
+            label = 2
+        elif label == 'metal':
+            label = 3
+        elif label == 'pop':
+            label = 4
+
+        return img_transformed,label
+
+train_data = dataset(train_list, transform = train_transforms)
+test_data = dataset(test_list, transform = test_transforms)
+
+train_loader = torch.utils.data.DataLoader(dataset = train_data, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset = test_data, batch_size=batch_size, shuffle=True)
+
+def calculate_accuracy(model, dataloader):
+    num_correct = 0
+    num_samples = 0
+    model.eval() # Set model to evaluation mode
+
+    with torch.no_grad():
+        for x, y in dataloader:
+            x, y = x.to(device), y.to(device)
+            y_pred = model(x).argmax(dim=1)
+            num_correct += (y_pred == y).sum().item()
+            num_samples += y.size(0)
+
+    model.train() # Set model back to training mode
+    return num_correct / num_samples
+
+##############################################
+###MODELS
+##############################################
+
+
+class FNN(nn.Module):
+    def __init__(self, input_size, num_classes):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_stack = nn.Sequential(
+            nn.Linear(input_size, 2000),
+            nn.Linear(2000, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_stack(x)
+        return logits
+
+##############################################
+###TRAINING
+##############################################
+
+model = FNN(input_size=input_size, num_classes=num_classes).to(device)
+model.train()
+print(model)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+final_loss = 0
+final_accuracy = 0
+
+loss_list = []
+accuracy_list = []
+
+epoch_accuracy = 0
+epoch_loss = 0
+last_loss = 1000000
+
+for epoch in range(epochs):
+    count = 0
+
+    for data, label in train_loader:
+        data = data.to(device)
+        label = label.to(device)
+
+        output = model(data)
+        loss = criterion(output,label)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        count += 1
+
+
+    epoch_accuracy = calculate_accuracy(model, train_loader)
+    epoch_loss = loss
+
+    loss_list.append(epoch_loss)
+    accuracy_list.append(epoch_accuracy)
+
+    print("Epoch , {}/{}, Training Accuracy: {}, Training Loss: {}".format(epoch+1, epochs, epoch_accuracy , epoch_loss))
+
+    print("Finished with epoch: ", epoch+1)
+
+    loss_diff = abs(last_loss - loss)
+
+    ###Dog leg - reducing dimishing returns
+    #if loss > 2*last_loss:
+      #break
+
+    if (epoch_accuracy > 0.9) & (loss < 1):
+      break
+
+    ###Stops overfitting
+    if ((loss_diff) < 0.05) & (epoch > 5):
+       break
+    if loss < 0.1:
+      break
+    last_loss = loss
+
+
+print('Finished Training')
+
+##############################################
+###TESTING
+##############################################
+
+predicted_list = []
+true_list = []
+model.eval()
+
+from sklearn.metrics import f1_score
+
+import torch.nn.functional as nnf
+
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    n_class_correct = [0 for i in range(num_classes)]
+    n_class_samples = [0 for i in range(num_classes)]
+    for images, labels in test_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        prob = nnf.softmax(outputs, dim=1)
+        top_p, top_class = prob.topk(1, dim = 1)
+        confidence = torch.mean(top_p)
+        print("confidence = ", confidence.item())
+        n_samples += labels.size(0)
+        n_correct += (predicted == labels).sum().item()
+
+        for i in range(batch_size):
+            label = labels[i]
+            pred = predicted[i]
+            predicted_list.append(pred)
+            true_list.append(label)
+            if (label == pred):
+                n_class_correct[label] += 1
+            n_class_samples[label] += 1
+
+    acc = 100.0 * n_correct / n_samples
+    print('Accuracy of the network on the 100 test images: {} %' .format(acc))
+
+    for i in range(num_classes):
+        acc = 100.0 * n_class_correct[i] / n_class_samples[i]
+        print('Accuracy of {}: {} %' .format(classes[i], acc))
+
+    for i in range(len(true_list)):
+      true_list[i] = true_list[i].tolist()
+      predicted_list[i] = predicted_list[i].tolist()
+    f1_score = f1_score(true_list, predicted_list, average='weighted')
+    print('F1-Score is {}' .format(f1_score))
+
+##############################################
+###CONFUSION MATRIX
+##############################################
+
+from sklearn import metrics
+conf_matrix = metrics.confusion_matrix(true_list, predicted_list)
+
+sns.heatmap(conf_matrix,
+            annot=True,
+            fmt='g',
+            xticklabels=["blues", "classical", "hiphop", "metal", "pop"],
+            yticklabels=["blues", "classical", "hiphop", "metal", "pop"])
+plt.ylabel('Actual',fontsize=13)
+plt.xlabel('Prediction',fontsize=13)
+plt.title('Confusion Matrix',fontsize=17)
+plt.show()
+
+print("Finished Training at: ", datetime.utcnow())
+
+print("Training took ", datetime.utcnow()-start_time)
+
+print('rotors are good sir')
+
+
+###I want to try a dry run with 3 layers ***DONE***
+## Softmax ***DONE***
+## ReLU ***DONE***
+## Leaky ReLU
+## Maxout
+##ill use this to build a more complex model for the real product
+
+
+
+
+#https://machinelearningmastery.com/using-dropout-regularization-in-pytorch-models/
+#use dropout on input layer then relu for hidden layers
+#using dropout after every relu

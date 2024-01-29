@@ -396,7 +396,7 @@ After further research i found that PyTorch might be a better packeage to use ov
 ### 19 Jan 2024
 
 * 2 hour* Using certainty of prediction to use a comparison to 
-bring both models together into one confusion matrix
+			bring both models together into one confusion matrix
 
 ##Week 19
 
@@ -406,19 +406,44 @@ bring both models together into one confusion matrix
 
 ### 23 Jan 2024
 
-*
+* 3 hour* bringing OvO and OvR models together to be compared in 
+			one confusion matrix
 
 ### 24 Jan 2024
 
-*
+* 3 hour* improving the final confusion matrix and trying to makes			
+			it better than both separately
 
 ### 25 Jan 2024
 
 *
 
-### ## ### 2024
+### 26 Jan 2024
 
 *
+
+##Week 20
+
+### 29 Jan 2024
+
+* 4 hour* writing background section of dissertation
+
+### 30 Jan 2024
+
+*
+
+### 31 Jan 2024
+
+*
+
+### 1 Feb 2024
+
+*
+
+### 2 Feb 2024
+
+*
+
 
 
 
